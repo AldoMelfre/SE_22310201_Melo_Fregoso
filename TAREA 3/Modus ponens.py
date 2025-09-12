@@ -11,6 +11,11 @@ def modus_ponens(P, Q_implicado):
     else:
         return False
 
+#Solicitar datos al usuario
+comer = input("Ya comiste? (si/no): ").strip().lower() == 'si'
+hambre = false #si ya comio, no tiene hambre
+
+
 # Ejemplo:
 # Si como (P), entonces tengo hambre (Q)
 comer = True
