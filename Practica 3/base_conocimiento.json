@@ -1,0 +1,22 @@
+[
+  {
+    "pattern": "hola",
+    "response": "¡Hola! 😄"
+  },
+  {
+    "pattern": "como estas",
+    "response": "¡Muy bien! ¿Y tú cómo estás?"
+  },
+  {
+    "pattern": "de que te gustaria hablar",
+    "response": "Podemos hablar de tecnología, estudios o tus proyectos."
+  },
+  {
+    "pattern": "que onda",
+    "response": "Que tranza"
+  },
+  {
+    "pattern": "como te va",
+    "response": "bien y a ti?"
+  }
+]
