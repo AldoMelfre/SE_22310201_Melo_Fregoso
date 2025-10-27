@@ -18,5 +18,9 @@
   {
     "pattern": "como te va",
     "response": "bien y a ti?"
+  },
+  {
+    "pattern": "pan",
+    "response": "a esta bueno eso"
   }
 ]

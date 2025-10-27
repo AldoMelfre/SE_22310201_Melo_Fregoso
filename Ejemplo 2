@@ -1,0 +1,151 @@
+# Algoritmo de Dijkstra para optimización de rutas de entrega 
+
+import heapq
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def dijkstra(grafo, origen):
+    # Inicializa las distancias a infinito y el previo a None
+    dist = {nodo: float('inf') for nodo in grafo}
+    dist[origen] = 0
+    previo = {nodo: None for nodo in grafo}
+    heap = [(0, origen)]  # Cola de prioridad: (costo acumulado, nodo actual)
+
+    while heap:
+        costo_actual, nodo = heapq.heappop(heap)
+        if costo_actual > dist[nodo]:
+            continue  # Si ya se encontró un camino mejor, ignora
+        for vecino, peso in grafo[nodo].items():
+            nueva_dist = costo_actual + peso
+            if nueva_dist < dist[vecino]:
+                dist[vecino] = nueva_dist
+                previo[vecino] = nodo
+                heapq.heappush(heap, (nueva_dist, vecino))
+    return dist, previo
+
+# Grafo de ejemplo
+grafo = {
+    'Guadalajara Centro': {
+        'Zapopan': 10,
+        'Tlaquepaque': 12,
+        'Tonala': 16,
+        'Tlajomulco': 30,
+        'Chapala': 50,
+        'Zapotlanejo': 35,
+        'Etzatlan': 65
+    },
+    'Zapopan': {
+        'Guadalajara Centro': 10,
+        'Tlaquepaque': 22,
+        'Tonala': 28,
+        'Chapala': 65,
+        'Zapotlanejo': 55,
+        'Etzatlan': 20
+    },
+    'Tlaquepaque': {
+        'Guadalajara Centro': 12,
+        'Tonala': 10,
+        'Tlajomulco': 18,
+        'Chapala': 45,
+        'Zapotlanejo': 30,
+        'Etzatlan': 80
+    },
+    'Tonala': {
+        'Guadalajara Centro': 16,
+        'Tlaquepaque': 10,
+        'Zapopan': 28,
+        'Tlajomulco': 25,
+        'Chapala': 60,
+        'Zapotlanejo': 20,
+        'Etzatlan': 90
+    },
+    'Tlajomulco': {
+        'Tlaquepaque': 18,
+        'Tonala': 25,
+        'Chapala': 35,
+        'Zapotlanejo': 60,
+        'Etzatlan': 100
+    },
+    'Chapala': {
+        'Zapopan': 65,
+        'Tlaquepaque': 45,
+        'Guadalajara Centro': 50,
+        'Tonala': 60,
+        'Tlajomulco': 35,
+        'Zapotlanejo': 70,
+        'Etzatlan': 120,
+        'Ajijic': 10
+    },
+    'Ajijic': {
+        'Chapala': 10
+    },
+    'Zapotlanejo': {
+        'Zapopan': 55,
+        'Tlaquepaque': 30,
+        'Guadalajara Centro': 35,
+        'Tonala': 20,
+        'Tlajomulco': 60,
+        'Chapala': 70,
+        'Etzatlan': 110
+    },
+    'Etzatlan': {
+        'Zapopan': 60,
+        'Tlaquepaque': 80,
+        'Guadalajara Centro': 65,
+        'Tonala': 90,
+        'Tlajomulco': 100,
+        'Chapala': 120,
+        'Zapotlanejo': 110
+    }
+}
+
+origen = 'Guadalajara Centro'
+distancias, previos = dijkstra(grafo, origen)
+
+COSTO_DIESEL = 25.3  # pesos por litro
+RENDIMIENTO_KM_LITRO = 7.5  # ejemplo: 7.5 km por litro
+
+def mostrar_grafo_interactivo(grafo, previos, origen, distancias):
+    G = nx.Graph()
+    for nodo, vecinos in grafo.items():
+        for vecino, peso in vecinos.items():
+            G.add_edge(nodo, vecino, weight=peso)
+    pos = nx.spring_layout(G, seed=42)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1200, font_size=10, ax=ax)
+    plt.title("Haz clic en el destino para ver la ruta óptima")
+
+    node_positions = {nodo: pos[nodo] for nodo in G.nodes}
+
+    def on_click(event):
+        for nodo, (x, y) in node_positions.items():
+            if (event.xdata is not None and event.ydata is not None and
+                (abs(event.xdata - x) < 0.05 and abs(event.ydata - y) < 0.05)):
+                if nodo == origen:
+                    print("Selecciona un destino diferente al origen.")
+                    return
+                ruta = []
+                actual = nodo
+                while actual:
+                    ruta.insert(0, actual)
+                    actual = previos[actual]
+                ruta_completa = [origen] + ruta[1:]
+                ax.clear()
+                nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1200, font_size=10, ax=ax)
+                ruta_edges = list(zip(ruta_completa, ruta_completa[1:]))
+                nx.draw_networkx_edges(G, pos, edgelist=ruta_edges, edge_color='red', width=3, ax=ax)
+                nx.draw_networkx_nodes(G, pos, nodelist=ruta_completa, node_color='orange', node_size=1400, ax=ax)
+                # Conversión de unidades
+                km = distancias[nodo]
+                litros = km / RENDIMIENTO_KM_LITRO
+                costo = litros * COSTO_DIESEL
+                plt.title(f"Ruta óptima de {origen} a {nodo}\nDistancia: {km} km\nDiesel: {litros:.2f} litros\nCosto: ${costo:.2f} pesos")
+                fig.canvas.draw()
+                break
+
+    fig.canvas.mpl_connect('button_press_event', on_click)
+    plt.show()
+
+# Mostrar el grafo interactivo
+mostrar_grafo_interactivo(grafo, previos, origen, distancias)
